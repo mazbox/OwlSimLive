@@ -5,6 +5,10 @@ This is a simple app for developing patches for the Hoxton Owl (http://www.hoxto
 
 You need xcode developer tools to use this because it needs gcc to recompile. It probably only works on 10.8+
 
+Download
+========
+Download the binary from here: http://www.mazbox.com/OwlSimLive/OwlSimLive.app.zip
+
 Dependencies
 ============
 * openFrameworks (https://github.com/openframeworks/openframeworks)
