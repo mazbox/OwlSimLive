@@ -15,7 +15,7 @@
 
 InBuffer ins;
 OutBuffer outs;
-
+string className;
 bool active = true;
 
 
@@ -100,6 +100,7 @@ void testApp::loadDylib(string file) {
 		// report error ...
 		printf("Error: No dice loading %s\n", file.c_str());
 	} else {
+
 		// use the result in a call to dlsym
 		printf("Success loading\n");
 		void *paramPtrFunc = dlsym(livecodeLib, "getPtrForParameter");
@@ -108,7 +109,7 @@ void testApp::loadDylib(string file) {
 		
 		if(ptrFunc!=NULL && paramPtrFunc!=NULL && paramNameFunc != NULL) {
 			
-			
+			ofSetWindowTitle(className);
 			
 			for(int i = 0; i < ctrlIds.size(); i++) {
 				gui.getControlById(ctrlIds[i])->pointToValue(((float *(*)(int))paramPtrFunc)(i));
@@ -201,8 +202,16 @@ void testApp::audioIn( float * input, int bufferSize, int nChannels ) {
 	} else {
 		for(int i = 0; i < bufferSize; i++) {
 			inBuff[i] = (input[i*2] + input[i*2+1])*0.5f;
+			if(inBuff[i]>1) inBuff[i] = 1;
+			if(inBuff[i]<-1) inBuff[i] = -1;
 		}
 	}
+	
+	for(int i = 0; i < bufferSize*nChannels; i++) {
+		if(inBuff[i]>1) inBuff[i] = 1;
+		if(inBuff[i]<-1) inBuff[i] = -1;
+	}
+	
 	
 	if(numInputChannels==2) {
 		for(int i = 0; i < bufferSize; i++) {
@@ -308,7 +317,7 @@ bool compile() {
 	string cpp = "/tmp/livecode/" + hppFile.getBaseName() + ".cpp";
 	
 	printf("Creating %s\n", cpp.c_str());
-	
+	className = hppFile.getBaseName();
 	ofstream myfile;
 	myfile.open (cpp.c_str());
 	myfile << 	"#include \""+hppFile.getFileName()+"\"\n";
