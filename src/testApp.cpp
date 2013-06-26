@@ -11,9 +11,12 @@
 #include "OutBuffer.h"
 
 #define NUM_PARAMS 5
+#define GUI_WIDTH 500
 
 InBuffer ins;
 OutBuffer outs;
+
+bool active = true;
 
 
 xmlgui::SimpleGui gui;
@@ -133,10 +136,21 @@ void testApp::loadDylib(string file) {
 	
 }
 
+void styleKnob(Knob *k, int pos) {
+	k->width = 100;
+	k->height = k->width;
+	k->y = 10;
+	if(pos==4) { // put the 5th knob below the fourth
+		pos = 3;
+		k->y += k->height + 20;
+	}
+	k->x = 10 + (k->width + 20)*pos;
+	
+}
 
 //--------------------------------------------------------------
 void testApp::setup(){
-	
+	ofSetCircleResolution(100);
 	for(int i = 0; i < NUM_PARAMS; i++) {
 		// fill an array with the letters, A, B, C, D...
 		char c[2];
@@ -158,12 +172,19 @@ void testApp::setup(){
 	ofSetFrameRate(60);
 	
 	gui.setEnabled(true);
-	
+	gui.setAutoLayout(false);
 	
 	for(int i = 0; i < ctrlIds.size(); i++) {
 		dummyParams[i] = 0;
-		gui.addSlider("Parameter "+ctrlIds[i], dummyParams[i], 0, 1)->id = ctrlIds[i];
+		Knob *knob = gui.addKnob("Parameter "+ctrlIds[i], dummyParams[i]);
+		knob->id = ctrlIds[i];
+		styleKnob(knob, i);
+
 	}
+	Toggle *bypass = gui.addToggle("", active);
+	bypass->width = bypass->height = 30;
+	bypass->x = GUI_WIDTH/2 - bypass->width/2;
+	bypass->y = 300;
 
 	
 	ofSetWindowShape(1024, 400);
@@ -229,8 +250,12 @@ void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 	} else {
 		outs.samples = output;
 	}
-	
-	patch->processAudio(ins, outs);
+	if(active) {
+		patch->processAudio(ins, outs);
+	} else {
+		assert(numInputChannels==numOutputChannels);
+		memcpy(outs.samples, ins.samples, bufferSize*numInputChannels*sizeof(float));
+	}
 	
 	if(numOutputChannels==1) {
 		for(int i = 0; i < bufferSize; i++) {
@@ -374,11 +399,11 @@ string wrap(string inp, int w) {
 void testApp::draw(){
 	ofEnableAlphaBlending();
 	glColor4f(1, 1, 1, 0.05);
-	ofRect(0,0, 195, ofGetHeight());
+	ofRect(0,0, GUI_WIDTH, ofGetHeight());
 	
 	
 	// draw volumes
-	ofRectangle r(195, ofGetHeight()-1, 25, -(ofGetHeight()-1));
+	ofRectangle r(GUI_WIDTH, ofGetHeight()-1, 25, -(ofGetHeight()-1));
 	ofSetHexColor(0xFFFFFF);
 	ofNoFill();
 	ofRect(r);
@@ -425,17 +450,19 @@ void testApp::draw(){
 	
 	if(ofGetWidth()<1024 && lastError!="") {
 		ofSetWindowShape(1024, ofGetHeight());
-	} else if(lastError=="" && ofGetWidth()>195+100) {
-		ofSetWindowShape(195+100, ofGetHeight());
+	} else if(lastError=="" && ofGetWidth()>GUI_WIDTH+100) {
+		ofSetWindowShape(GUI_WIDTH+100, ofGetHeight());
 	}
 	if(lastError!="") {
-		ofDrawBitmapString(wrap(lastError, ofGetWidth() - 20 - (195+100)), rr.x+rr.width, 20);
+		ofDrawBitmapString(wrap(lastError, ofGetWidth() - 20 - (GUI_WIDTH+100)), rr.x+rr.width, 20);
 	}
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-	
+	if(key==' ') {
+		active ^= true;
+	}
 }
 
 //--------------------------------------------------------------
