@@ -6,32 +6,85 @@
 #include <sys/types.h>
 #include "SimpleGui.h"
 #include "Parameters.h"
+#include "MutePatch.h"
+#include "InBuffer.h"
+#include "OutBuffer.h"
+
+#define NUM_PARAMS 5
+
+InBuffer ins;
+OutBuffer outs;
+
+
 xmlgui::SimpleGui gui;
 
 ofMutex *mutex;
-Patch *eff = NULL;
-Patch *silent = NULL;
+Patch *patch = NULL;
+
 ofFile hppFile;
 long updateTime;
-class SilentEffect: public Patch {
-public:
-	
-	virtual void processAudio(AudioInputBuffer &input, AudioOutputBuffer &output) {
-		float* y = output.getSamples();
-		int size = input.getSize();
-		memset(y, 0, size*sizeof(float));
-	}
-};
+vector<string> ctrlIds;
 
-	
+float inBuff[8192];
+
+float inLevelL = 0;
+float inLevelR = 0;
+int numInputChannels = 1;
+int numOutputChannels = 1;
+
 
 
 void *livecodeLib = NULL;
 
+
+
+float dummyParams[NUM_PARAMS];
+
+
+
+std::string execute(string cmd) {
+	printf("Executing %s\n", cmd.c_str());
+	cmd += " 2>&1";
+    FILE* pipe = popen(cmd.c_str(), "r");
+    if (!pipe) return "ERROR";
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe)) {
+    	if(fgets(buffer, 128, pipe) != NULL)
+    		result += buffer;
+    }
+    pclose(pipe);
+	printf("Got %s\n", result.c_str());
+    return result;
+}
+
+
+
+
+string linkObjects() {
+	string dylibName = ofGetTimestampString()+"-livecode.dylib";
+	execute("g++ -arch i386 -dynamiclib -o /tmp/livecode/"+dylibName+" /tmp/livecode/*.o ");
+	return dylibName;
+}
+
+
+void clean() {
+	execute("rm -Rf /tmp/livecode");
+	execute("mkdir -p /tmp/livecode");
+}
+
+
+
+
+
 void testApp::loadDylib(string file) {
 	mutex->lock();
 	if(livecodeLib!=NULL) {
-		delete eff;
+		// remember previous slider positions
+		for(int i = 0; i < ctrlIds.size(); i++) {
+			dummyParams[i] = gui.getControlById(ctrlIds[i])->getFloat();
+		}
+		delete patch;
 		dlclose(livecodeLib);
 		
 		livecodeLib = NULL;
@@ -51,22 +104,18 @@ void testApp::loadDylib(string file) {
 		void *ptrFunc = dlsym(livecodeLib, "getPatch");
 		
 		if(ptrFunc!=NULL && paramPtrFunc!=NULL && paramNameFunc != NULL) {
-			vector<string> ctrlIds;
-			ctrlIds.push_back("A");
-			ctrlIds.push_back("B");
-			ctrlIds.push_back("C");
-			ctrlIds.push_back("D");
-			ctrlIds.push_back("E");
+			
+			
 			
 			for(int i = 0; i < ctrlIds.size(); i++) {
 				gui.getControlById(ctrlIds[i])->pointToValue(((float *(*)(int))paramPtrFunc)(i));
-				gui.getControlById(ctrlIds[i])->setValue(i);
+				gui.getControlById(ctrlIds[i])->setValue(dummyParams[i]);
 			}
 
 
 					
 			
-			eff = ((Patch *(*)())ptrFunc)();
+			patch = ((Patch *(*)())ptrFunc)();
 			
 			for(int i = 0; i < ctrlIds.size(); i++) {
 				gui.getControlById(ctrlIds[i])->name =((string(*)(int))paramNameFunc)(i);
@@ -83,66 +132,47 @@ void testApp::loadDylib(string file) {
 	mutex->unlock();
 	
 }
-void testApp::doGui(Patch *e) {
-	gui.clear();
-	/*
-	for(int i = 0; i < params.params.size(); i++) {
-		Parameter *p = params.params[i];
-		if(p->type=="slider") {
-			SliderParameter *s = (SliderParameter*)p;
-			gui.addSlider(s->name, *s->value, s->min, s->max);
-		} else if(p->type=="intslider") {
-			IntSliderParameter *s = (IntSliderParameter*)p;
-			gui.addSlider(s->name, *s->value, s->min, s->max);
-		} else if(p->type=="meter") {
-			MeterParameter *s = (MeterParameter*)p;
-			gui.addMeter(s->name, *s->value);
-			
-		} else if(p->type=="toggle") {
-			ToggleParameter *t = (ToggleParameter*)p;
-			gui.addToggle(t->name, *t->value);
-		} else if(p->type=="switch") {
-			SwitchParameter *s = (SwitchParameter*)p;
-			gui.addSegmented(s->name, *s->value, s->options);
-		}
-	}*/
-}
 
 
-
-
-float dummyParams[5];
 //--------------------------------------------------------------
 void testApp::setup(){
+	
+	for(int i = 0; i < NUM_PARAMS; i++) {
+		// fill an array with the letters, A, B, C, D...
+		char c[2];
+		c[0] = 'A' + i;
+		c[1] = '\0';
+		string letter(c);
+		ctrlIds.push_back(letter);
+	}
+
+	// set data path to app/Contents/Resources
 	string r = ofToDataPath("", true);
-	ofSetDataPathRoot(r.substr(0, r.size()-20)+"Resources/");
-	printf("%s\n", ofToDataPath("", true).c_str());
+	ofSetDataPathRoot(r.substr(0, r.size()-20)+"Resources/data/");
+
+	
 	mutex = new ofMutex();
-	silent = new SilentEffect();
-	eff = silent;
+	patch = new MutePatch();
+	
 	ofBackground(0);
 	ofSetFrameRate(60);
-	//loadDylib(ofToDataPath("../../Osc.dylib", true));
 	
 	gui.setEnabled(true);
-	for(int i = 0; i < 5; i++) dummyParams[i] = 0;
-	gui.addSlider("Parameter A", dummyParams[PARAMETER_A], 0, 1)->id = "A";
-	gui.addSlider("Parameter B", dummyParams[PARAMETER_B], 0, 1)->id = "B";
-	gui.addSlider("Parameter C", dummyParams[PARAMETER_C], 0, 1)->id = "C";
-	gui.addSlider("Parameter D", dummyParams[PARAMETER_D], 0, 1)->id = "D";
-	gui.addSlider("Parameter E", dummyParams[PARAMETER_E], 0, 1)->id = "E";
-	//	ofSetWindowShape(195+50, 400);
+	
+	
+	for(int i = 0; i < ctrlIds.size(); i++) {
+		dummyParams[i] = 0;
+		gui.addSlider("Parameter "+ctrlIds[i], dummyParams[i], 0, 1)->id = ctrlIds[i];
+	}
+
+	
 	ofSetWindowShape(1024, 400);
 	
-	ofSoundStreamSetup(2, 2, this, 44100, 256
-					   , 1);
+	ofSoundStreamSetup(2, 2, this, 44100, 256, 1);
 }
-float inBuff[8192];
 
-float inLevelL = 0;
-float inLevelR = 0;
-int numInputChannels = 1;
-int numOutputChannels = 1;
+
+
 void testApp::audioIn( float * input, int bufferSize, int nChannels ) {
 	assert(numInputChannels<3);
 	if(numInputChannels==2) {
@@ -181,53 +211,8 @@ void testApp::audioIn( float * input, int bufferSize, int nChannels ) {
 float outLevelL = 0;
 float outLevelR = 0;
 
-class InBuffer: public AudioInputBuffer {
-public:
-	float *samples;
-	int size;
-	InBuffer() {
-		size = 0;
-	}
-	void getSamples(int from, int length, float* data) {
-		memcpy(data, &samples[from], length * sizeof(float));
-	}
-	
-	float* getSamples() {
-		return samples;
-	}
-	int getSize() {
-		return size;
-	}
-};
 
-class OutBuffer: public AudioOutputBuffer {
-public:
-	OutBuffer() {
-		size = 0;
-	}
-	
-	int size;
-	float *samples;
-	
-	void setSamples(int from, int length, float* data) {
-		memcpy(&samples[from], data, length*sizeof(float));
-	}
-	
-	void setSamples(float* data) {
-		memcpy(samples, data, size*sizeof(float));
-	}
-	
-	float* getSamples() {
-		return samples;
-	}
-	
-	int getSize() {
-		return size;
-	}
-};
 
-InBuffer ins;
-OutBuffer outs;
 
 void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 	assert(numOutputChannels<3);
@@ -245,7 +230,7 @@ void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 		outs.samples = output;
 	}
 	
-	eff->processAudio(ins, outs);
+	patch->processAudio(ins, outs);
 	
 	if(numOutputChannels==1) {
 		for(int i = 0; i < bufferSize; i++) {
@@ -276,41 +261,6 @@ void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 	}
 }
 
-std::string execute(string cmd) {
-	printf("Executing %s\n", cmd.c_str());
-	cmd += " 2>&1";
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "ERROR";
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-    	if(fgets(buffer, 128, pipe) != NULL)
-    		result += buffer;
-    }
-    pclose(pipe);
-	printf("Got %s\n", result.c_str());
-    return result;
-}
-
-
-
-string linkObjects() {
-	string dylibName = ofGetTimestampString()+"-livecode.dylib";
-	execute("g++ -arch i386 -dynamiclib -o /tmp/livecode/"+dylibName+" /tmp/livecode/*.o ");
-	return dylibName;
-}
-
-
-void clean() {
-	execute("rm -Rf /tmp/livecode");
-	
-	execute("mkdir -p /tmp/livecode");
-	/*AEH h;
-	ofstream myfile;
-	myfile.open ("/tmp/livecode/AudioEffect.h");
-	myfile << 	h.getHeader().c_str();
-	myfile.close();*/
-}
 
 long getUpdateTime(ofFile &file) {
 	
@@ -324,8 +274,9 @@ long getUpdateTime(ofFile &file) {
 }
 
 string lastError = "";
+
 bool compile() {
-	string includes = "-I" + hppFile.getEnclosingDirectory() + " -I" + ofToDataPath("");
+	string includes = "-I" + hppFile.getEnclosingDirectory() + " -I" + ofToDataPath("..");
 	updateTime = getUpdateTime(hppFile);
 	string basename = hppFile.getBaseName();
 	string hpp = hppFile.path();

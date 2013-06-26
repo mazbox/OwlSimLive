@@ -43,6 +43,7 @@
 		E7E077E515D3B63C0020DFD4 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7E077E415D3B63C0020DFD4 /* CoreVideo.framework */; };
 		E7E077E815D3B6510020DFD4 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7E077E715D3B6510020DFD4 /* QTKit.framework */; };
 		E7F985F815E0DEA3003869B5 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E7F985F515E0DE99003869B5 /* Accelerate.framework */; };
+		EA8F9C76177AF1F600EE9189 /* data in Resources */ = {isa = PBXBuildFile; fileRef = EA8F9C75177AF1F600EE9189 /* data */; };
 		EA9EC0881778F26E00C27300 /* StompBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA9EC0871778F26E00C27300 /* StompBox.cpp */; };
 		EA9EC08C1779BC9100C27300 /* StompBox.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = EA9EC07B1778EE6500C27300 /* StompBox.h */; };
 		adbcae93f142410daee185f0883dc592 /* Container.cpp in Sources */ = {isa = PBXBuildFile; fileRef = c460da5d6ac04d81fa3b7042de0f59e2 /* Container.cpp */; };
@@ -169,10 +170,13 @@
 		E7E077E415D3B63C0020DFD4 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		E7E077E715D3B6510020DFD4 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		E7F985F515E0DE99003869B5 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
+		EA8F9C70177AEF8400EE9189 /* MutePatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MutePatch.h; sourceTree = "<group>"; };
+		EA8F9C71177AF0D000EE9189 /* InBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = InBuffer.h; sourceTree = "<group>"; };
+		EA8F9C72177AF0E900EE9189 /* OutBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OutBuffer.h; sourceTree = "<group>"; };
+		EA8F9C75177AF1F600EE9189 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = bin/data; sourceTree = "<group>"; };
 		EA9EC07B1778EE6500C27300 /* StompBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StompBox.h; sourceTree = "<group>"; };
 		EA9EC0871778F26E00C27300 /* StompBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StompBox.cpp; sourceTree = "<group>"; };
 		EA9EC0891778F35300C27300 /* Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Parameters.h; sourceTree = "<group>"; };
-		EA9EC08A17799C2F00C27300 /* OverdrivePatch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = OverdrivePatch.hpp; path = test/OverdrivePatch.hpp; sourceTree = SOURCE_ROOT; };
 		a0220193884a48229f99ceb07685a9e8 /* GridSequence.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = GridSequence.h; path = ../../../addons/ofxXmlGui/src/xmlgui/framework/GridSequence.h; sourceTree = SOURCE_ROOT; };
 		aa7faad8735c13d2eede6f07395aeeee /* PushButton.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = PushButton.h; path = ../../../addons/ofxXmlGui/src/xmlgui/controls/PushButton.h; sourceTree = SOURCE_ROOT; };
 		ac540059ee843d593f647cd259a67071 /* Text.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = Text.h; path = ../../../addons/ofxXmlGui/src/xmlgui/controls/Text.h; sourceTree = SOURCE_ROOT; };
@@ -410,6 +414,7 @@
 		E4B69B4A0A3A1720003C02F2 = {
 			isa = PBXGroup;
 			children = (
+				EA8F9C75177AF1F600EE9189 /* data */,
 				E4B6FCAD0C3E899E008CF71C /* openFrameworks-Info.plist */,
 				E4EB6923138AFD0F00A09F29 /* Project.xcconfig */,
 				E4B69E1C0A3A1BDC003C02F2 /* src */,
@@ -424,12 +429,14 @@
 			isa = PBXGroup;
 			children = (
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
-				EA9EC08A17799C2F00C27300 /* OverdrivePatch.hpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* testApp.cpp */,
+				EA8F9C70177AEF8400EE9189 /* MutePatch.h */,
 				EA9EC07B1778EE6500C27300 /* StompBox.h */,
 				EA9EC0891778F35300C27300 /* Parameters.h */,
 				EA9EC0871778F26E00C27300 /* StompBox.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* testApp.h */,
+				EA8F9C71177AF0D000EE9189 /* InBuffer.h */,
+				EA8F9C72177AF0E900EE9189 /* OutBuffer.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -514,6 +521,7 @@
 				E4B6FFFD0C3F9AB9008CF71C /* ShellScript */,
 				E4C2427710CC5ABF004149E2 /* CopyFiles */,
 				EA9EC08B1779BC8500C27300 /* CopyFiles */,
+				EA8F9C74177AF1D800EE9189 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -565,6 +573,17 @@
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		EA8F9C74177AF1D800EE9189 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA8F9C76177AF1F600EE9189 /* data in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		E4B6FFFD0C3F9AB9008CF71C /* ShellScript */ = {

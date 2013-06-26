@@ -24,7 +24,6 @@ public:
 	
 private:
 
-	void doGui(Patch *e);
 	void loadDylib(string file);
 	void setFile(string file);
 	void checkSourceForUpdates();
