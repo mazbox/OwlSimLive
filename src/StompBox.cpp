@@ -21,3 +21,11 @@ void Patch::registerParameter(PatchParameterId pid, const std::string& name, con
 float Patch::getParameterValue(PatchParameterId pid) {
 	return patchParameterValues[pid];
 }
+
+
+AudioBuffer::~AudioBuffer() {
+}
+Patch::~Patch() {
+}
+Patch::Patch() {
+}

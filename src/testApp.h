@@ -2,6 +2,9 @@
 
 #include "ofMain.h"
 #include "StompBox.h"
+#include "AudioBufferImpl.h"
+#include "SimpleGui.h"
+#include "PatchCompiler.h"
 
 class testApp : public ofBaseApp {
 	
@@ -25,6 +28,21 @@ public:
 private:
 
 	void loadDylib(string file);
-	void setFile(string file);
-	void checkSourceForUpdates();
+
+	
+	bool compile();
+	
+
+	AudioBufferImpl buff;
+	xmlgui::SimpleGui gui;
+	ofImage bgImage;
+	
+
+	
+	PatchCompiler patchCompiler;
+	
+
+	
+	float inBuff[8192];
+	int GUI_WIDTH;
 };

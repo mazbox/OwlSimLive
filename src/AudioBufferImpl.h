@@ -12,28 +12,32 @@
  *
  *  Description: 
  *				 
- *  InBuffer.h, created by Marek Bereza on 26/06/2013.
+ *  AudioBufferImpl.h, created by Marek Bereza on 26/06/2013.
  */
 
 
 #pragma once
 #include "StompBox.h"
 
-class InBuffer: public AudioInputBuffer {
+class AudioBufferImpl: public AudioBuffer {
 public:
 	float *samples;
 	int size;
-	InBuffer() {
+	AudioBufferImpl() {
 		size = 0;
 	}
 	void getSamples(int from, int length, float* data) {
 		memcpy(data, &samples[from], length * sizeof(float));
 	}
 	
-	float* getSamples() {
+	float* getSamples(int channel) {
 		return samples;
 	}
 	int getSize() {
 		return size;
+	}
+
+	int getChannels() {
+		return 1;
 	}
 };

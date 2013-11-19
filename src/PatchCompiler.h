@@ -12,37 +12,61 @@
  *
  *  Description: 
  *				 
- *  OutBuffer.h, created by Marek Bereza on 26/06/2013.
+ *  PatchCompiler.h, created by Marek Bereza on 19/11/2013.
  */
 
-
-
-
 #pragma once
-#include "StompBox.h"
 
-class OutBuffer: public AudioOutputBuffer {
+#include "ofMain.h"
+#include "SimpleGui.h"
+#include "StompBox.h"
+#define NUM_PARAMS 5
+
+
+
+
+
+class PatchCompiler {
 public:
-	OutBuffer() {
-		size = 0;
-	}
 	
-	int size;
-	float *samples;
+	void setup(xmlgui::SimpleGui *gui);
+	void setFile(string file);
 	
-	void setSamples(int from, int length, float* data) {
-		memcpy(&samples[from], data, length*sizeof(float));
-	}
+
 	
-	void setSamples(float* data) {
-		memcpy(samples, data, size*sizeof(float));
-	}
 	
-	float* getSamples() {
-		return samples;
-	}
+	void checkSourceForUpdates();
+	string getLastError();
 	
-	int getSize() {
-		return size;
-	}
+	void lock();
+	void unlock();
+	
+	vector<string> ctrlIds;
+	
+	float dummyParams[NUM_PARAMS];
+	
+
+	Patch *patch;
+	
+private:
+	
+
+	
+	
+	long getUpdateTime(ofFile &file);
+	
+	
+	void *livecodeLib;
+	void loadDylib(string file);
+	void clean();
+	bool compile();
+	string linkObjects();
+	ofFile hppFile;
+	long updateTime;
+	string lastError;
+	string className;
+	ofMutex *mutex;
+	xmlgui::SimpleGui *gui;
+	
 };
+

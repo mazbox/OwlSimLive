@@ -1,34 +1,17 @@
 #include "testApp.h"
 
-#include <dlfcn.h>
-#include <time.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "SimpleGui.h"
+
+
 #include "Parameters.h"
 #include "MutePatch.h"
-#include "InBuffer.h"
-#include "OutBuffer.h"
 
-#define NUM_PARAMS 5
-#define GUI_WIDTH 500
 
-InBuffer ins;
-OutBuffer outs;
-string className;
+
+
+
+
 bool active = true;
 
-
-xmlgui::SimpleGui gui;
-
-ofMutex *mutex;
-Patch *patch = NULL;
-
-ofFile hppFile;
-long updateTime;
-vector<string> ctrlIds;
-
-float inBuff[8192];
 
 float inLevelL = 0;
 float inLevelR = 0;
@@ -37,109 +20,22 @@ int numOutputChannels = 1;
 
 
 
-void *livecodeLib = NULL;
-
-
-
-float dummyParams[NUM_PARAMS];
-
-
-
-std::string execute(string cmd) {
-	printf("Executing %s\n", cmd.c_str());
-	cmd += " 2>&1";
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return "ERROR";
-    char buffer[128];
-    std::string result = "";
-    while(!feof(pipe)) {
-    	if(fgets(buffer, 128, pipe) != NULL)
-    		result += buffer;
-    }
-    pclose(pipe);
-	printf("Got %s\n", result.c_str());
-    return result;
-}
-
-
-
-
-string linkObjects() {
-	string dylibName = ofGetTimestampString()+"-livecode.dylib";
-	execute("g++ -arch i386 -dynamiclib -o /tmp/livecode/"+dylibName+" /tmp/livecode/*.o ");
-	return dylibName;
-}
-
-
-void clean() {
-	execute("rm -Rf /tmp/livecode");
-	execute("mkdir -p /tmp/livecode");
-}
 
 
 
 
 
-void testApp::loadDylib(string file) {
-	mutex->lock();
-	if(livecodeLib!=NULL) {
-		// remember previous slider positions
-		for(int i = 0; i < ctrlIds.size(); i++) {
-			dummyParams[i] = gui.getControlById(ctrlIds[i])->getFloat();
-		}
-		delete patch;
-		dlclose(livecodeLib);
-		
-		livecodeLib = NULL;
-	}
-	
-	
-	livecodeLib = dlopen(file.c_str(), RTLD_LAZY);
-	
-	if (livecodeLib == NULL) {
-		// report error ...
-		printf("Error: No dice loading %s\n", file.c_str());
-	} else {
-
-		// use the result in a call to dlsym
-		printf("Success loading\n");
-		void *paramPtrFunc = dlsym(livecodeLib, "getPtrForParameter");
-		void *paramNameFunc = dlsym(livecodeLib, "getNameForParameter");
-		void *ptrFunc = dlsym(livecodeLib, "getPatch");
-		
-		if(ptrFunc!=NULL && paramPtrFunc!=NULL && paramNameFunc != NULL) {
-			
-			ofSetWindowTitle(className);
-			
-			for(int i = 0; i < ctrlIds.size(); i++) {
-				gui.getControlById(ctrlIds[i])->pointToValue(((float *(*)(int))paramPtrFunc)(i));
-				gui.getControlById(ctrlIds[i])->setValue(dummyParams[i]);
-			}
 
 
-					
-			
-			patch = ((Patch *(*)())ptrFunc)();
-			
-			for(int i = 0; i < ctrlIds.size(); i++) {
-				gui.getControlById(ctrlIds[i])->name =((string(*)(int))paramNameFunc)(i);
-				printf("Control Name: %s\n", gui.getControlById(ctrlIds[i])->name.c_str());
-			}
-			
-			
-		} else {
-			if(ptrFunc==NULL) printf("Couldn't find the getPatch() function\n");
-			if(paramPtrFunc==NULL) printf("Couldn't find the getPtrForParameter() function\n");
-			if(paramNameFunc==NULL) printf("Couldn't find the getNameForParameter() function\n");
-		}
-	}
-	mutex->unlock();
-	
-}
+
+
 
 void styleKnob(Knob *k, int pos) {
 	k->width = 100;
 	k->height = k->width;
+	k->needleImage = xmlgui::Resources::getImage(ofToDataPath("knobNeedle.png"));
+	k->needleImage->setAnchorPercent(0.5, 0.5);
+
 	k->y = 10;
 	if(pos==4) { // put the 5th knob below the fourth
 		pos = 3;
@@ -151,23 +47,21 @@ void styleKnob(Knob *k, int pos) {
 
 //--------------------------------------------------------------
 void testApp::setup(){
+	
 	ofSetCircleResolution(100);
-	for(int i = 0; i < NUM_PARAMS; i++) {
-		// fill an array with the letters, A, B, C, D...
-		char c[2];
-		c[0] = 'A' + i;
-		c[1] = '\0';
-		string letter(c);
-		ctrlIds.push_back(letter);
-	}
+	
 
 	// set data path to app/Contents/Resources
 	string r = ofToDataPath("", true);
-	ofSetDataPathRoot(r.substr(0, r.size()-20)+"Resources/data/");
-
+	string dataPathRoot = r;//r.substr(0, r.size()-20)+"Resources/data/";
+	ofSetDataPathRoot(dataPathRoot);
+	ofLogNotice() << "Setting data path root to " << dataPathRoot;
 	
-	mutex = new ofMutex();
-	patch = new MutePatch();
+	bgImage.loadImage("bg.png");
+	GUI_WIDTH = bgImage.getWidth();
+	
+	patchCompiler.setup(&gui);
+	
 	
 	ofBackground(0);
 	ofSetFrameRate(60);
@@ -175,10 +69,10 @@ void testApp::setup(){
 	gui.setEnabled(true);
 	gui.setAutoLayout(false);
 	
-	for(int i = 0; i < ctrlIds.size(); i++) {
-		dummyParams[i] = 0;
-		Knob *knob = gui.addKnob("Parameter "+ctrlIds[i], dummyParams[i]);
-		knob->id = ctrlIds[i];
+	for(int i = 0; i < patchCompiler.ctrlIds.size(); i++) {
+		patchCompiler.dummyParams[i] = 0;
+		Knob *knob = gui.addKnob("Parameter "+patchCompiler.ctrlIds[i], patchCompiler.dummyParams[i]);
+		knob->id = patchCompiler.ctrlIds[i];
 		styleKnob(knob, i);
 
 	}
@@ -246,38 +140,36 @@ float outLevelR = 0;
 
 void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 	assert(numOutputChannels<3);
-	mutex->lock();
+	patchCompiler.lock();
 	
-	ins.size = bufferSize;
-	ins.samples = inBuff;
+	buff.size = bufferSize;
+	buff.samples = inBuff;
 	
-	outs.size = bufferSize;
+	buff.size = bufferSize;
 	
-	if(numOutputChannels==1) {
-		// yes, I know.
-		outs.samples = new float[bufferSize];
-	} else {
-		outs.samples = output;
-	}
+	
 	if(active) {
-		patch->processAudio(ins, outs);
-	} else {
-		assert(numInputChannels==numOutputChannels);
-		memcpy(outs.samples, ins.samples, bufferSize*numInputChannels*sizeof(float));
-	}
+		patchCompiler.patch->processAudio(buff);
+	} 
+	
+	
 	
 	if(numOutputChannels==1) {
 		for(int i = 0; i < bufferSize; i++) {
-			output[i*2] = output[i*2+1] = outs.samples[i];
+			output[i*2] = output[i*2+1] = buff.samples[i];
 		}
-		delete [] outs.samples;
 	}
-	mutex->unlock();
+	
+	
+	
+	
+	
+	patchCompiler.unlock();
 	
 	for(int i = 0; i < nChannels*bufferSize; i++) {
 		if(output[i]>1) output[i] = 1;
 		else if(output[i] <-1) output[i] = -1;
-		//output[i] *= 0.5;
+
 	}
 	
 	for(int i = 0; i < bufferSize; i++) {
@@ -296,94 +188,17 @@ void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 }
 
 
-long getUpdateTime(ofFile &file) {
-	
-	struct stat fileStat;
-    if(stat(file.path().c_str(), &fileStat) < 0) {
-		printf("Couldn't stat file\n");
-		return;
-	}
-	
-	return fileStat.st_mtime;
-}
-
-string lastError = "";
-
-bool compile() {
-	string includes = "-I" + hppFile.getEnclosingDirectory() + " -I" + ofToDataPath("..");
-	updateTime = getUpdateTime(hppFile);
-	string basename = hppFile.getBaseName();
-	string hpp = hppFile.path();
-	string cpp = "/tmp/livecode/" + hppFile.getBaseName() + ".cpp";
-	
-	printf("Creating %s\n", cpp.c_str());
-	className = hppFile.getBaseName();
-	ofstream myfile;
-	myfile.open (cpp.c_str());
-	myfile << 	"#include \""+hppFile.getFileName()+"\"\n";
-	myfile << "extern \"C\" { Patch *getPatch() { return new " + hppFile.getBaseName() + "(); }};\n";
-	myfile << "std::string patchParameterNames[5];\n";
-	myfile << "float patchParameterValues[5];\n";
-	
-	myfile << 	"int Patch::getBlockSize() { return 256; }\n";
-	myfile << 	"double Patch::getSampleRate() { return 44100; }\n";
-	myfile << 	"void Patch::registerParameter(PatchParameterId pid, const std::string& name, const std::string& description) {patchParameterNames[pid] = name;}\n";
-	myfile << 	"float Patch::getParameterValue(PatchParameterId pid) {return patchParameterValues[pid];}\n";
-	myfile << "extern \"C\" { float *getPtrForParameter(PatchParameterId pid) { return &patchParameterValues[pid]; };\n";
-	myfile << "std::string getNameForParameter(PatchParameterId pid) { return patchParameterNames[pid]; };\n};\n";
-	myfile.close();
-	
-	
-	
-	string result = execute("g++ -arch i386 -c "+cpp+" " +includes+" -I/tmp/livecode -o /tmp/livecode/"+basename+".o");
-	//	printf(">>>> %ld '%s'\n",result.size(), result.c_str());
-	lastError = result;
-	if(result.size()!=0) ofBackground(100, 0,0);
-	else ofBackground(0);
-	return result.size()==0;
-}
-
-
-
-void testApp::setFile(string file) {
-
-	hppFile = ofFile(file);
-	updateTime = getUpdateTime(hppFile);
-
-
-	clean();
-	compile();
-	string dylibName = linkObjects();
-	loadDylib("/tmp/livecode/"+dylibName);
-}
-
-void testApp::checkSourceForUpdates() {
-	if(hppFile.path()=="") {
-		return;
-	}
-	bool compiled = false;
-
-	if(getUpdateTime(hppFile)!=updateTime) {
-		compile();
-		compiled = true;
-	}
-	
-	if(compiled) {
-		string dylibName = linkObjects();
-		loadDylib("/tmp/livecode/"+dylibName);
-	}
-}
 
 
 //--------------------------------------------------------------
 void testApp::update(){
 	//	if(ofGetFrameNum()%60==0) {
-	checkSourceForUpdates();
+	patchCompiler.checkSourceForUpdates();
 	//	}
 }
 
 string wrapLine(string inp, int w) {
-	int charWidth = 8;
+	int charWidth = 6;
 	string o = "";
 	int numCharsPerLine = w/charWidth;
 	
@@ -409,7 +224,8 @@ void testApp::draw(){
 	ofEnableAlphaBlending();
 	glColor4f(1, 1, 1, 0.05);
 	ofRect(0,0, GUI_WIDTH, ofGetHeight());
-	
+	ofSetColor(255);
+	bgImage.draw(0, 0);
 	
 	// draw volumes
 	ofRectangle r(GUI_WIDTH, ofGetHeight()-1, 25, -(ofGetHeight()-1));
@@ -456,14 +272,15 @@ void testApp::draw(){
 	ofRect(rr);
 	ofSetHexColor(0xFFFFFF);
 	
-	
-	if(ofGetWidth()<1024 && lastError!="") {
+	// TODO: don't ask for the entire error string to test if there's an error
+	// just ask for something like patchCompiler.hasError()
+	if(ofGetWidth()<1024 && patchCompiler.getLastError()!="") {
 		ofSetWindowShape(1024, ofGetHeight());
-	} else if(lastError=="" && ofGetWidth()>GUI_WIDTH+100) {
+	} else if(patchCompiler.getLastError()=="" && ofGetWidth()>GUI_WIDTH+100) {
 		ofSetWindowShape(GUI_WIDTH+100, ofGetHeight());
 	}
-	if(lastError!="") {
-		ofDrawBitmapString(wrap(lastError, ofGetWidth() - 20 - (GUI_WIDTH+100)), rr.x+rr.width, 20);
+	if(patchCompiler.getLastError()!="") {
+		xmlgui::Resources::drawString(wrap(patchCompiler.getLastError(), ofGetWidth() - 20 - (GUI_WIDTH+100)), rr.x+rr.width, 20);
 	}
 }
 
@@ -516,7 +333,7 @@ void testApp::dragEvent(ofDragInfo dragInfo){
 		if(f.isDirectory()) {
 			printf("Error: Must be a single file\n");
 		} else {
-			setFile(f.path());
+			patchCompiler.setFile(f.path());
 		}
 	}
 }
