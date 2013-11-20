@@ -51,6 +51,12 @@
 		EA02734A183BBA9700173664 /* PatchCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA027348183BBA9700173664 /* PatchCompiler.cpp */; };
 		EA8F9C76177AF1F600EE9189 /* data in Resources */ = {isa = PBXBuildFile; fileRef = EA8F9C75177AF1F600EE9189 /* data */; };
 		EA9EC0881778F26E00C27300 /* StompBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA9EC0871778F26E00C27300 /* StompBox.cpp */; };
+		EAC1483C183C2B0C009D3403 /* Instructions.txt in Resources */ = {isa = PBXBuildFile; fileRef = EAC14818183C2B0C009D3403 /* Instructions.txt */; };
+		EAC14846183C2B0C009D3403 /* kiss_fft.c in Sources */ = {isa = PBXBuildFile; fileRef = EAC14831183C2B0C009D3403 /* kiss_fft.c */; };
+		EAC14847183C2B0C009D3403 /* kiss_fftr.c in Sources */ = {isa = PBXBuildFile; fileRef = EAC14833183C2B0C009D3403 /* kiss_fftr.c */; };
+		EAC14848183C2B0C009D3403 /* ofxFft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EAC14836183C2B0C009D3403 /* ofxFft.cpp */; };
+		EAC14849183C2B0C009D3403 /* ofxFftBasic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EAC14838183C2B0C009D3403 /* ofxFftBasic.cpp */; };
+		EAC1484C183CDEA7009D3403 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = EAC1484B183CDEA7009D3403 /* icon.icns */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -206,6 +212,17 @@
 		EA8F9C75177AF1F600EE9189 /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = bin/data; sourceTree = "<group>"; };
 		EA9EC0871778F26E00C27300 /* StompBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = StompBox.cpp; sourceTree = "<group>"; };
 		EA9EC0891778F35300C27300 /* Parameters.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Parameters.h; sourceTree = "<group>"; };
+		EAC14818183C2B0C009D3403 /* Instructions.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Instructions.txt; sourceTree = "<group>"; };
+		EAC14830183C2B0C009D3403 /* _kiss_fft_guts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _kiss_fft_guts.h; sourceTree = "<group>"; };
+		EAC14831183C2B0C009D3403 /* kiss_fft.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kiss_fft.c; sourceTree = "<group>"; };
+		EAC14832183C2B0C009D3403 /* kiss_fft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kiss_fft.h; sourceTree = "<group>"; };
+		EAC14833183C2B0C009D3403 /* kiss_fftr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kiss_fftr.c; sourceTree = "<group>"; };
+		EAC14834183C2B0C009D3403 /* kiss_fftr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kiss_fftr.h; sourceTree = "<group>"; };
+		EAC14836183C2B0C009D3403 /* ofxFft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxFft.cpp; sourceTree = "<group>"; };
+		EAC14837183C2B0C009D3403 /* ofxFft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxFft.h; sourceTree = "<group>"; };
+		EAC14838183C2B0C009D3403 /* ofxFftBasic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ofxFftBasic.cpp; sourceTree = "<group>"; };
+		EAC14839183C2B0C009D3403 /* ofxFftBasic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ofxFftBasic.h; sourceTree = "<group>"; };
+		EAC1484B183CDEA7009D3403 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
 		b21e7e5f548eea92f368040bb1aa2f69 /* tinyxml.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = tinyxml.h; path = ../../../addons/ofxXmlSettings/libs/tinyxml.h; sourceTree = SOURCE_ROOT; };
 		b76fa489151dbaf1616df378299d0daa /* ofxMidiIn.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxMidiIn.h; path = ../../../addons/ofxMidi/src/ofxMidiIn.h; sourceTree = SOURCE_ROOT; };
 		fc5da1c87211d4f6377da7199d8c5a1e /* tinyxmlparser.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = tinyxmlparser.cpp; path = ../../../addons/ofxXmlSettings/libs/tinyxmlparser.cpp; sourceTree = SOURCE_ROOT; };
@@ -304,6 +321,7 @@
 		BB4B014C10F69532006C3DED /* addons */ = {
 			isa = PBXGroup;
 			children = (
+				EAC14816183C2B0C009D3403 /* ofxFft */,
 				EA027202183B925600173664 /* ofxXmlGui */,
 				1f4fb5c423662b96adfdcc0badec1cb0 /* ofxXmlSettings */,
 				2413c01760b1811bed0f502df2311b72 /* ofxMidi */,
@@ -363,6 +381,7 @@
 			children = (
 				EA8F9C75177AF1F600EE9189 /* data */,
 				E4B6FCAD0C3E899E008CF71C /* openFrameworks-Info.plist */,
+				EAC1484B183CDEA7009D3403 /* icon.icns */,
 				E4EB6923138AFD0F00A09F29 /* Project.xcconfig */,
 				E4B69E1C0A3A1BDC003C02F2 /* src */,
 				E4EEC9E9138DF44700A80321 /* openFrameworks */,
@@ -530,6 +549,56 @@
 			path = textfield;
 			sourceTree = "<group>";
 		};
+		EAC14816183C2B0C009D3403 /* ofxFft */ = {
+			isa = PBXGroup;
+			children = (
+				EAC14817183C2B0C009D3403 /* docs */,
+				EAC14828183C2B0C009D3403 /* libs */,
+				EAC14835183C2B0C009D3403 /* src */,
+			);
+			name = ofxFft;
+			path = ../../../addons/ofxFft;
+			sourceTree = "<group>";
+		};
+		EAC14817183C2B0C009D3403 /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				EAC14818183C2B0C009D3403 /* Instructions.txt */,
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+		EAC14828183C2B0C009D3403 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				EAC1482F183C2B0C009D3403 /* kiss */,
+			);
+			path = libs;
+			sourceTree = "<group>";
+		};
+		EAC1482F183C2B0C009D3403 /* kiss */ = {
+			isa = PBXGroup;
+			children = (
+				EAC14830183C2B0C009D3403 /* _kiss_fft_guts.h */,
+				EAC14831183C2B0C009D3403 /* kiss_fft.c */,
+				EAC14832183C2B0C009D3403 /* kiss_fft.h */,
+				EAC14833183C2B0C009D3403 /* kiss_fftr.c */,
+				EAC14834183C2B0C009D3403 /* kiss_fftr.h */,
+			);
+			path = kiss;
+			sourceTree = "<group>";
+		};
+		EAC14835183C2B0C009D3403 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				EAC14836183C2B0C009D3403 /* ofxFft.cpp */,
+				EAC14837183C2B0C009D3403 /* ofxFft.h */,
+				EAC14838183C2B0C009D3403 /* ofxFftBasic.cpp */,
+				EAC14839183C2B0C009D3403 /* ofxFftBasic.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -602,6 +671,8 @@
 			files = (
 				EA8F9C76177AF1F600EE9189 /* data in Resources */,
 				EA02732A183B925700173664 /* README.md in Resources */,
+				EAC1483C183C2B0C009D3403 /* Instructions.txt in Resources */,
+				EAC1484C183CDEA7009D3403 /* icon.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -652,6 +723,10 @@
 				EA027336183B925700173664 /* ofGuiEventDispatcher.cpp in Sources */,
 				EA027337183B925700173664 /* Resources.cpp in Sources */,
 				EA02734A183BBA9700173664 /* PatchCompiler.cpp in Sources */,
+				EAC14846183C2B0C009D3403 /* kiss_fft.c in Sources */,
+				EAC14847183C2B0C009D3403 /* kiss_fftr.c in Sources */,
+				EAC14848183C2B0C009D3403 /* ofxFft.cpp in Sources */,
+				EAC14849183C2B0C009D3403 /* ofxFftBasic.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

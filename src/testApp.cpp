@@ -53,13 +53,14 @@ void testApp::setup(){
 
 	// set data path to app/Contents/Resources
 	string r = ofToDataPath("", true);
-	string dataPathRoot = r;//r.substr(0, r.size()-20)+"Resources/data/";
+	string dataPathRoot = r.substr(0, r.size()-5)+"OwlSimLive.app/Contents/Resources/data/";
 	ofSetDataPathRoot(dataPathRoot);
 	ofLogNotice() << "Setting data path root to " << dataPathRoot;
 	
 	bgImage.loadImage("bg.png");
 	GUI_WIDTH = bgImage.getWidth();
-	
+	LEVELS_WIDTH = 100;
+	FFT_WIDTH = 500;
 	patchCompiler.setup(&gui);
 	
 	
@@ -83,8 +84,28 @@ void testApp::setup(){
 
 	
 	ofSetWindowShape(1024, 400);
+	bufferSize = 256;
+	samplerate = 44100;
 	
-	ofSoundStreamSetup(2, 2, this, 44100, 256, 1);
+	
+	
+	
+	// init fft and begin audio
+	fftInputPos = 0;
+	buffersPerFftBlock = 4;
+	fftSize = bufferSize * buffersPerFftBlock;
+
+
+	fft = ofxFft::create(fftSize, OF_FFT_WINDOW_HAMMING);
+	
+
+	fftAvg = new float[fftSize];
+
+	memset(fftAvg, 0, fftSize*sizeof(float));
+	
+	fftInput = new float[fftSize];
+	
+	ofSoundStreamSetup(2, 2, this, samplerate, fftSize, 1);
 }
 
 
@@ -153,6 +174,14 @@ void testApp::audioOut( float * output, int bufferSize, int nChannels ) {
 	} 
 	
 	
+	memcpy(&fftInput[fftInputPos], buff.samples, sizeof(float)*bufferSize);
+	// increment and wrap
+	fftInputPos += bufferSize;
+	if(fftInputPos>=fftSize) fftInputPos -= fftSize;
+	
+	if(fftInputPos==0) {
+		fft->setSignal(buff.samples);
+	}
 	
 	if(numOutputChannels==1) {
 		for(int i = 0; i < bufferSize; i++) {
@@ -227,8 +256,95 @@ void testApp::draw(){
 	ofSetColor(255);
 	bgImage.draw(0, 0);
 	
+	drawLevels();
+	drawFft();
+
+	// TODO: don't ask for the entire error string to test if there's an error
+	// just ask for something like patchCompiler.hasError()
+	if(ofGetWidth()<1024 && patchCompiler.getLastError()!="") {
+		ofSetWindowShape(1024, ofGetHeight());
+	} else if(patchCompiler.getLastError()=="" && ofGetWidth()>GUI_WIDTH+100) {
+		ofSetWindowShape(GUI_WIDTH+LEVELS_WIDTH+FFT_WIDTH, ofGetHeight());
+	}
+	if(patchCompiler.getLastError()!="") {
+		xmlgui::Resources::drawString(wrap(patchCompiler.getLastError(), ofGetWidth() - 20 - (GUI_WIDTH+100)), GUI_WIDTH+LEVELS_WIDTH, 20);
+	}
+}
+
+
+
+//float log10 (float x) {
+//	return (log(x) / log(10));
+//}
+
+float getXCoordForFreq(float freq) {
+	return log10(freq)*110.0 - 77;
+}
+
+float testApp::getXForBin(float bin, float numBins) {
+	float nyquist = samplerate/2.f;
+	// what frequency is this?
+	float freq = nyquist * bin/numBins;
+	return getXCoordForFreq(freq);
+}
+
+
+
+void testApp::drawFft() {
+	ofSetColor(255);
+	ofRectangle r(GUI_WIDTH+LEVELS_WIDTH+20, 20, FFT_WIDTH-40, ofGetHeight()-40);
+	
+	ofPushStyle();
+	ofPushMatrix();
+	
+	ofTranslate(r.x, r.y);
+	ofNoFill();
+	ofRect(0, 0, r.width, r.height);
+	ofTranslate(0, r.height);
+	ofScale(r.width / fft->getBinSize(), -r.height);
+
+	ofBeginShape();
+	float *fs = fft->getAmplitude();
+	
+	float smth = 0.9;
+	
+	for (int i = 0; i < fft->getBinSize(); i++) {
+		fftAvg[i] = fftAvg[i] * smth + fs[i]*(1-smth);
+		ofVertex(getXForBin(i, fft->getBinSize()), fftAvg[i]*3.f);
+	}
+	ofEndShape();
+	
+	
+	for(int ten = 1; ten <= 4; ten++) {
+		for(float f = 1; f < 10; f++) {
+			if(f==1) ofSetColor(120);
+			else ofSetColor(60);
+			float freq = powf(10, ten)*f;
+
+			float xx = getXCoordForFreq(freq);
+			
+			ofLine(xx, 0, xx, 1);
+			
+		}
+	}
+	/*xx = getXCoordForFreq(100);
+	ofLine(xx, 0, xx, ofGetHeight());
+	xx = getXCoordForFreq(1000);
+	ofLine(xx, 0, xx, ofGetHeight());
+	xx = getXCoordForFreq(10000);
+	ofLine(xx, 0, xx, ofGetHeight());
+	*/
+	
+	ofPopMatrix();
+	ofPopStyle();
+	
+	
+
+}
+
+void testApp::drawLevels() {
 	// draw volumes
-	ofRectangle r(GUI_WIDTH, ofGetHeight()-1, 25, -(ofGetHeight()-1));
+	ofRectangle r(GUI_WIDTH, ofGetHeight()-1, LEVELS_WIDTH/4, -(ofGetHeight()-1));
 	ofSetHexColor(0xFFFFFF);
 	ofNoFill();
 	ofRect(r);
@@ -271,19 +387,7 @@ void testApp::draw(){
 	rr.height *= outLevelR;
 	ofRect(rr);
 	ofSetHexColor(0xFFFFFF);
-	
-	// TODO: don't ask for the entire error string to test if there's an error
-	// just ask for something like patchCompiler.hasError()
-	if(ofGetWidth()<1024 && patchCompiler.getLastError()!="") {
-		ofSetWindowShape(1024, ofGetHeight());
-	} else if(patchCompiler.getLastError()=="" && ofGetWidth()>GUI_WIDTH+100) {
-		ofSetWindowShape(GUI_WIDTH+100, ofGetHeight());
-	}
-	if(patchCompiler.getLastError()!="") {
-		xmlgui::Resources::drawString(wrap(patchCompiler.getLastError(), ofGetWidth() - 20 - (GUI_WIDTH+100)), rr.x+rr.width, 20);
-	}
 }
-
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 	if(key==' ') {

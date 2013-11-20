@@ -21,9 +21,12 @@
 class MutePatch: public Patch {
 public:
 	
+	
 	virtual void processAudio(AudioBuffer &audio) {
+		
 		int size = audio.getSize();
 		float* x = audio.getSamples(0);
+		
 		memset(x, 0, size*sizeof(float));
 	}
 };

@@ -5,6 +5,7 @@
 #include "AudioBufferImpl.h"
 #include "SimpleGui.h"
 #include "PatchCompiler.h"
+#include "ofxFft.h"
 
 class testApp : public ofBaseApp {
 	
@@ -26,8 +27,10 @@ public:
 	void audioOut( float * output, int bufferSize, int nChannels );
 	
 private:
-
+	
+	ofxFft *fft;
 	void loadDylib(string file);
+	void drawFft();
 
 	
 	bool compile();
@@ -41,8 +44,18 @@ private:
 	
 	PatchCompiler patchCompiler;
 	
-
+	void drawLevels();
+	int bufferSize;
+	int buffersPerFftBlock;
+	int fftSize;
+	int fftInputPos;
+	float samplerate;
+	float *fftInput;
+	float *fftAvg;
 	
 	float inBuff[8192];
 	int GUI_WIDTH;
+	int LEVELS_WIDTH;
+	int FFT_WIDTH;
+	float getXForBin(float bin, float numBins);
 };
